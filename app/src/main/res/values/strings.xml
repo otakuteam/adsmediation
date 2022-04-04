@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">AdsMediation</string>
+
+    <!--admob-->
+    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="admob_banner_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="admob_interstitial_id">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="admob_reward_id">	ca-app-pub-3940256099942544/5224354917</string>
+    <!--unity-->
+    <string name="unity_game_id">4618271</string>
+    <string name="unity_banner_id">banner</string>
+    <string name="unity_popup_id">Interstitial_Android</string>
+    <string name="unity_reward_id">Rewarded_Android</string>
+</resources>

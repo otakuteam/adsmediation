@@ -1,0 +1,46 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 30
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
+
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+repositories {
+    google()
+    jcenter()
+    maven { url "https://jitpack.io" }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+
+    //unity mediation
+    implementation "com.unity3d.mediation:mediation-sdk:0.4.0"
+    implementation "com.unity3d.mediation:unityads-adapter:0.4.0"
+    implementation "com.unity3d.mediation:facebook-adapter:0.4.0"
+    implementation "com.unity3d.mediation:adcolony-adapter:0.4.0"
+    implementation "com.unity3d.mediation:ironsource-adapter:0.4.0"
+
+    //Google ads
+    implementation 'com.google.android.gms:play-services-ads:15.0.0'
+}
