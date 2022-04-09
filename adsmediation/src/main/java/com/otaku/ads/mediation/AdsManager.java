@@ -74,6 +74,7 @@ public class AdsManager {
     }
 
     public void init(Context context) {
+        AdsPreferenceUtil.getInstance().init(context);
         admobAdsManager = new AdmobAdsManager(context, admobAppId, admobBanner, admobPopup, admobReward);
         admobAdsManager.init();
         unityAdsManager = new UnityAdsManager(context, unityAppId, unityPopup, unityReward);
@@ -217,6 +218,7 @@ public class AdsManager {
 
     public long getLimitTime() {
         long interval = AdsPreferenceUtil.getInstance().getLong(AdsConstants.PREF_AD_TIME, 15); //in second
+        AdsLog.d(TAG, "limit_time: " + interval);
         return interval * 1000;
     }
 
