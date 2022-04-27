@@ -1,12 +1,10 @@
 package com.otaku.ads.mediation;
 
 import android.content.Context;
-import android.view.ViewGroup;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.doubleclick.PublisherAdView;
 import com.otaku.ads.mediation.admob.AdmobAdsManager;
-import com.otaku.ads.mediation.callback.BannerAdsListener;
 import com.otaku.ads.mediation.callback.PopupAdsListener;
 import com.otaku.ads.mediation.callback.RewardAdListener;
 import com.otaku.ads.mediation.unity.UnityAdsManager;
@@ -85,15 +83,12 @@ public class AdsManager {
         }
     }
 
-    public void showBanner(ViewGroup banner) {
+    public void showBanner(PublisherAdView banner) {
         try {
-            AdsLog.d(TAG, "showBanner: has_admob");
-            admobAdsManager.showBanner(banner, new BannerAdsListener() {
-                @Override
-                public void OnLoadFail() {
-                    AdsLog.d(TAG, "showBanner: OnLoadFail");
-                }
-            });
+            if (mEnableAd) {
+                AdsLog.d(TAG, "showBanner: has_admob");
+                admobAdsManager.showBanner(banner, new AdListener());
+            }
         } catch (Exception e) {
             //AdsLog.e(TAG, e.getMessage());
         }

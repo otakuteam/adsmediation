@@ -8,6 +8,7 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.ads.doubleclick.PublisherAdView;
 import com.otaku.ads.mediation.AdsManager;
 
 
@@ -26,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
                 .setUnityPopup(getString(R.string.unity_popup_id))
                 .setUnityReward(getString(R.string.unity_reward_id))
                 .init(this);
-        AdsManager.getInstance().showBanner((ViewGroup) findViewById(R.id.banner));
+        AdsManager.getInstance().showBanner((PublisherAdView) findViewById(R.id.publisherAdView));
         ((Button) findViewById(R.id.button)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

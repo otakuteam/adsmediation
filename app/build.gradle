@@ -30,4 +30,6 @@ dependencies {
 
 //    implementation 'com.github.otakuteam:adsmediation:v1.0'
     implementation project(path: ':adsmediation')
+    //Google ads
+    implementation 'com.google.android.gms:play-services-ads:15.0.0'
 }

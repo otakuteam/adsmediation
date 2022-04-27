@@ -21,16 +21,20 @@
         android:layout_below="@+id/button"
         android:layout_centerHorizontal="true"/>
 
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/footer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_margin="8dp">
+        android:layout_margin="8dp"
+        android:gravity="center">
 
-        <RelativeLayout
-            android:id="@+id/banner"
+        <com.google.android.gms.ads.doubleclick.PublisherAdView xmlns:ads="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/publisherAdView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </RelativeLayout>
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            ads:adSize="BANNER"
+            ads:adUnitId="@string/admob_banner_id" />
+    </LinearLayout>
 </RelativeLayout>
