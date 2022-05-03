@@ -11,9 +11,11 @@ import com.google.android.gms.ads.doubleclick.PublisherInterstitialAd;
 import com.google.android.gms.ads.reward.RewardItem;
 import com.google.android.gms.ads.reward.RewardedVideoAd;
 import com.google.android.gms.ads.reward.RewardedVideoAdListener;
+import com.otaku.ads.mediation.AdsConstants;
 import com.otaku.ads.mediation.callback.PopupAdsListener;
 import com.otaku.ads.mediation.callback.RewardAdListener;
 import com.otaku.ads.mediation.util.AdsLog;
+import com.otaku.ads.mediation.util.AdsPreferenceUtil;
 
 public class AdmobAdsManager {
     public final String TAG = getClass().getSimpleName();
@@ -143,7 +145,9 @@ public class AdmobAdsManager {
     }
 
     private long getLimitTime() {
-        return 0 * 1000; //40s
+        long interval = AdsPreferenceUtil.getInstance().getLong(AdsConstants.PREF_ADMOB_TIME, 30); //in second
+        AdsLog.d(TAG, "limit_admob_time: " + interval);
+        return interval * 1000;
     }
 
     public void showPopup(InterstitialModel adModel, PopupAdsListener listener) {

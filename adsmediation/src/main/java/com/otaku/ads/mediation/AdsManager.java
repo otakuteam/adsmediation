@@ -141,6 +141,28 @@ public class AdsManager {
         }
     }
 
+    public void showUnityPopup(PopupAdsListener listener) {
+        try {
+            if (canShowPopup()) {
+                unityAdsManager.showPopup(new PopupAdsListener() {
+                    @Override
+                    public void OnClose() {
+                        listener.OnClose();
+                    }
+
+                    @Override
+                    public void OnShowFail() {
+                        listener.OnShowFail();
+                    }
+                });
+            }
+            mPreviousTime = System.currentTimeMillis();
+        } catch (Exception e) {
+            listener.OnShowFail();
+            //AdsLog.e(TAG, e.getMessage());
+        }
+    }
+
     private boolean canShowPopup() {
         //check period to show
         long currentTime = System.currentTimeMillis();
@@ -210,6 +232,29 @@ public class AdsManager {
         }
     }
 
+    public void showUnityReward(RewardAdListener listener) {
+        try {
+            unityAdsManager.showReward(new RewardAdListener() {
+                @Override
+                public void OnClose() {
+                    listener.OnClose();
+                }
+
+                @Override
+                public void OnShowFail() {
+                    listener.OnShowFail();
+                }
+
+                @Override
+                public void OnRewarded() {
+                    listener.OnRewarded();
+                }
+            });
+        } catch (Exception e) {
+            listener.OnShowFail();
+            //AdsLog.e(TAG, e.getMessage());
+        }
+    }
 
     public long getLimitTime() {
         long interval = AdsPreferenceUtil.getInstance().getLong(AdsConstants.PREF_AD_TIME, 15); //in second
@@ -219,6 +264,16 @@ public class AdsManager {
 
     public void setLimitTime(long time) {
         AdsPreferenceUtil.getInstance().putLong(AdsConstants.PREF_AD_TIME, time);
+    }
+
+    public void setLimitAdmobTime(long time) {
+        AdsPreferenceUtil.getInstance().putLong(AdsConstants.PREF_ADMOB_TIME, time);
+    }
+
+    public long getLimitAdmobTime() {
+        long interval = AdsPreferenceUtil.getInstance().getLong(AdsConstants.PREF_ADMOB_TIME, 30); //in second
+        AdsLog.d(TAG, "limit_admob_time: " + interval);
+        return interval * 1000;
     }
 
     public void enableAd() {
