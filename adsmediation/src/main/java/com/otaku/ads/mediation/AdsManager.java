@@ -1,10 +1,12 @@
 package com.otaku.ads.mediation;
 
 import android.content.Context;
+import android.view.ViewGroup;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.doubleclick.PublisherAdView;
 import com.otaku.ads.mediation.admob.AdmobAdsManager;
+import com.otaku.ads.mediation.callback.BannerAdsListener;
 import com.otaku.ads.mediation.callback.PopupAdsListener;
 import com.otaku.ads.mediation.callback.RewardAdListener;
 import com.otaku.ads.mediation.unity.UnityAdsManager;
@@ -18,6 +20,7 @@ public class AdsManager {
     private UnityAdsManager unityAdsManager;
     private AdmobAdsManager admobAdsManager;
     private boolean mEnableAd = true;
+    private boolean mShowBanner = true;
     private long mPreviousTime = 0;
     private boolean hasAdmob = true;
 
@@ -85,9 +88,25 @@ public class AdsManager {
 
     public void showBanner(PublisherAdView banner) {
         try {
-            if (mEnableAd) {
+            if (mEnableAd && mShowBanner) {
                 AdsLog.d(TAG, "showBanner: has_admob");
                 admobAdsManager.showBanner(banner, new AdListener());
+            }
+        } catch (Exception e) {
+            //AdsLog.e(TAG, e.getMessage());
+        }
+    }
+
+    public void showBannerViewGroup(ViewGroup banner) {
+        try {
+            if (mEnableAd && mShowBanner) {
+                AdsLog.d(TAG, "showBanner: has_admob");
+                admobAdsManager.showBanner(banner, new BannerAdsListener() {
+                    @Override
+                    public void OnLoadFail() {
+
+                    }
+                });
             }
         } catch (Exception e) {
             //AdsLog.e(TAG, e.getMessage());
@@ -254,6 +273,11 @@ public class AdsManager {
             listener.OnShowFail();
             //AdsLog.e(TAG, e.getMessage());
         }
+    }
+
+    public void setShowBanner(boolean showBanner) {
+        mShowBanner = showBanner;
+        AdsPreferenceUtil.getInstance().putBoolean(AdsConstants.PREF_ENABLE_BANNER, mShowBanner);
     }
 
     public long getLimitTime() {

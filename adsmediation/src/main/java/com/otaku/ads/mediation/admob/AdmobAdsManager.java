@@ -1,9 +1,12 @@
 package com.otaku.ads.mediation.admob;
 
 import android.content.Context;
+import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.doubleclick.PublisherAdRequest;
 import com.google.android.gms.ads.doubleclick.PublisherAdView;
@@ -12,6 +15,7 @@ import com.google.android.gms.ads.reward.RewardItem;
 import com.google.android.gms.ads.reward.RewardedVideoAd;
 import com.google.android.gms.ads.reward.RewardedVideoAdListener;
 import com.otaku.ads.mediation.AdsConstants;
+import com.otaku.ads.mediation.callback.BannerAdsListener;
 import com.otaku.ads.mediation.callback.PopupAdsListener;
 import com.otaku.ads.mediation.callback.RewardAdListener;
 import com.otaku.ads.mediation.util.AdsLog;
@@ -134,6 +138,27 @@ public class AdmobAdsManager {
         adView.loadAd(adRequest);
     }
 
+    public void showBanner(ViewGroup banner, BannerAdsListener listener) {
+        if (banner != null) banner.removeAllViews();
+        PublisherAdView adView = new PublisherAdView(mContext);
+        adView.setAdSizes(AdSize.SMART_BANNER);
+        adView.setAdUnitId(banner_id);
+        adView.setAdListener(new AdListener() {
+            @Override
+            public void onAdFailedToLoad(int i) {
+                super.onAdFailedToLoad(i);
+                listener.OnLoadFail();
+            }
+        });
+
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        banner.addView(adView, params);
+        PublisherAdRequest adRequest = new PublisherAdRequest.Builder()
+                .build();
+        adView.loadAd(adRequest);
+    }
+
     private void loadInterstitialAd(InterstitialModel adModel) {
         adModel.getAd().loadAd(new PublisherAdRequest.Builder()
 //                .addTestDevice("C15580731DB985062B527414D86E5447")
@@ -170,7 +195,7 @@ public class AdmobAdsManager {
                 }
             } else {
                 AdsLog.i(TAG, "not show not enough interval time");
-                listener.OnClose();
+                listener.OnShowFail();
             }
         } else {
             AdsLog.i(TAG, "not show");
