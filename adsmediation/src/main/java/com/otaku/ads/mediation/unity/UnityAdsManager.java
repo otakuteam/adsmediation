@@ -23,7 +23,7 @@ import com.unity3d.mediation.errors.ShowError;
 
 public class UnityAdsManager {
     private final String TAG = getClass().getSimpleName();
-    private Activity mActivity;
+    private Context mContext;
     private String app_id = "";
     private String popup_id = "";
     private String reward_id = "";
@@ -31,7 +31,7 @@ public class UnityAdsManager {
     private RewardedAd rewardedAd;
 
     public UnityAdsManager(Context context, String appId, String popup, String reward) {
-        mActivity = (Activity) context;
+        mContext = context;
         app_id = appId;
         popup_id = popup;
         reward_id = reward;
@@ -58,30 +58,9 @@ public class UnityAdsManager {
         UnityMediation.initialize(configuration);
     }
 
-    public void loadInterstitialAd() {
-        AdsLog.d(TAG, "unity-loadInterstitialAd");
-        interstitialAd = new InterstitialAd(mActivity, popup_id);
-        // Implement a load listener interface:
-        final IInterstitialAdLoadListener loadListener = new IInterstitialAdLoadListener() {
-            @Override
-            public void onInterstitialLoaded(InterstitialAd ad) {
-                // Execute logic when the ad successfully loads.
-                AdsLog.d(TAG, "onInterstitialLoaded");
-            }
 
-            @Override
-            public void onInterstitialFailedLoad(InterstitialAd ad, LoadError error, String msg) {
-                // Execute logic when the ad fails to load.
-                AdsLog.d(TAG, "onInterstitialFailedLoad");
-            }
-        };
-
-        // Load an ad:
-        interstitialAd.load(loadListener);
-    }
-
-    public void showPopup(PopupAdsListener listener) {
-        interstitialAd = new InterstitialAd(mActivity, popup_id);
+    public void showPopup(Activity activity, PopupAdsListener listener) {
+        interstitialAd = new InterstitialAd(activity, popup_id);
         AdsLog.d(TAG, "unity-showPopup: " + interstitialAd.getAdState());
         interstitialAd.load(new IInterstitialAdLoadListener() {
             @Override
@@ -124,8 +103,8 @@ public class UnityAdsManager {
         });
     }
 
-    public void showReward(RewardAdListener listener) {
-        rewardedAd = new RewardedAd(mActivity, reward_id);
+    public void showReward(Activity activity, RewardAdListener listener) {
+        rewardedAd = new RewardedAd(activity, reward_id);
         rewardedAd.load(new IRewardedAdLoadListener() {
             @Override
             public void onRewardedLoaded(RewardedAd rewardedAd) {

@@ -1,15 +1,25 @@
 package com.otaku.ads.mediation.admob;
 
-import com.google.android.gms.ads.reward.RewardedVideoAd;
+import com.google.android.gms.ads.rewarded.RewardedAd;
 
 public class RewardModel {
     private boolean isShow = true;
     private boolean isReloaded = false;
+    private boolean isLoading = false;
     private long lastTimeShow = 0;
-    private RewardedVideoAd ad;
+    private RewardedAd ad;
 
     public RewardModel() {
 
+    }
+
+    public boolean isLoading() {
+        return isLoading;
+    }
+
+    public RewardModel setLoading(boolean loading) {
+        isLoading = loading;
+        return this;
     }
 
     public boolean isShow() {
@@ -39,11 +49,11 @@ public class RewardModel {
         return this;
     }
 
-    public RewardedVideoAd getAd() {
+    public RewardedAd getAd() {
         return ad;
     }
 
-    public RewardModel setAd(RewardedVideoAd ad) {
+    public RewardModel setAd(RewardedAd ad) {
         this.ad = ad;
         return this;
     }

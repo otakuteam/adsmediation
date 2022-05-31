@@ -1,13 +1,13 @@
 package com.otaku.ads.mediation.admob;
 
-import com.google.android.gms.ads.doubleclick.PublisherInterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
 
 public class InterstitialModel {
 
     private boolean isShow = true;
     private boolean isReloaded = false;
     private long lastTimeShow = 0;
-    private PublisherInterstitialAd ad;
+    private InterstitialAd ad;
 
     public InterstitialModel() {
 
@@ -40,11 +40,11 @@ public class InterstitialModel {
         return this;
     }
 
-    public PublisherInterstitialAd getAd() {
+    public InterstitialAd getAd() {
         return ad;
     }
 
-    public InterstitialModel setAd(PublisherInterstitialAd ad) {
+    public InterstitialModel setAd(InterstitialAd ad) {
         this.ad = ad;
         return this;
     }

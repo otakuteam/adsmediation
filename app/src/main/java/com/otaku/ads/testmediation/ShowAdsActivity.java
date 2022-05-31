@@ -20,7 +20,7 @@ public class ShowAdsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_ads);
         LogDebug.d(TAG, "OnCreate()");
-        AdsManager.getInstance().showPopup(new PopupAdsListener() {
+        AdsManager.getInstance().showPopup(ShowAdsActivity.this, new PopupAdsListener() {
             @Override
             public void OnClose() {
 
@@ -35,7 +35,7 @@ public class ShowAdsActivity extends AppCompatActivity {
         ((Button) findViewById(R.id.btn)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                AdsManager.getInstance().showReward(new RewardAdListener() {
+                AdsManager.getInstance().showReward(ShowAdsActivity.this, new RewardAdListener() {
                     @Override
                     public void OnClose() {
                         Toast.makeText(getApplicationContext(), "Close reward ads", Toast.LENGTH_SHORT).show();

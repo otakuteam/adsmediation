@@ -1,11 +1,13 @@
 package com.otaku.ads.mediation;
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.ViewGroup;
 
 import com.google.android.gms.ads.AdListener;
-import com.google.android.gms.ads.doubleclick.PublisherAdView;
+import com.google.android.gms.ads.AdView;
 import com.otaku.ads.mediation.admob.AdmobAdsManager;
+import com.otaku.ads.mediation.admob.AppOpenAdManager;
 import com.otaku.ads.mediation.callback.BannerAdsListener;
 import com.otaku.ads.mediation.callback.PopupAdsListener;
 import com.otaku.ads.mediation.callback.RewardAdListener;
@@ -13,19 +15,18 @@ import com.otaku.ads.mediation.unity.UnityAdsManager;
 import com.otaku.ads.mediation.util.AdsLog;
 import com.otaku.ads.mediation.util.AdsPreferenceUtil;
 
-import static com.otaku.ads.mediation.admob.AdmobAdsManager.intersAds;
-
 public class AdsManager {
     private final String TAG = getClass().getSimpleName();
     private UnityAdsManager unityAdsManager;
     private AdmobAdsManager admobAdsManager;
+    private AppOpenAdManager appOpenAdManager;
     private boolean mEnableAd = true;
     private boolean mShowBanner = true;
     private long mPreviousTime = 0;
     private boolean hasAdmob = true;
 
     //ads id
-    private String admobAppId, admobBanner, admobPopup, admobReward, unityAppId, unityPopup, unityReward;
+    private String admobAppId, admobOpenId, admobBanner, admobPopup, admobReward, unityAppId, unityPopup, unityReward;
 
     private AdsManager() {
     }
@@ -41,6 +42,11 @@ public class AdsManager {
 
     public AdsManager setAdmobApp(String appid) {
         this.admobAppId = appid;
+        return this;
+    }
+
+    public AdsManager setAdmobOpen(String openId) {
+        this.admobOpenId = openId;
         return this;
     }
 
@@ -78,6 +84,7 @@ public class AdsManager {
         AdsPreferenceUtil.getInstance().init(context);
         admobAdsManager = new AdmobAdsManager(context, admobAppId, admobBanner, admobPopup, admobReward);
         admobAdsManager.init();
+        appOpenAdManager = new AppOpenAdManager(admobOpenId);
         unityAdsManager = new UnityAdsManager(context, unityAppId, unityPopup, unityReward);
         unityAdsManager.init();
         mEnableAd = AdsPreferenceUtil.getInstance().getBoolean(AdsConstants.PREF_ENABLE_AD, true);
@@ -86,11 +93,16 @@ public class AdsManager {
         }
     }
 
-    public void showBanner(PublisherAdView banner) {
+    public void showBanner(AdView banner) {
         try {
             if (mEnableAd && mShowBanner) {
                 AdsLog.d(TAG, "showBanner: has_admob");
-                admobAdsManager.showBanner(banner, new AdListener());
+                admobAdsManager.showBanner(banner, new AdListener() {
+                    @Override
+                    public void onAdClosed() {
+                        super.onAdClosed();
+                    }
+                });
             }
         } catch (Exception e) {
             //AdsLog.e(TAG, e.getMessage());
@@ -113,12 +125,12 @@ public class AdsManager {
         }
     }
 
-    public void showPopup(PopupAdsListener listener) {
+    public void showPopup(Activity activity, PopupAdsListener listener) {
         try {
             if (canShowPopup()) {
                 if (hasAdmob) {
                     AdsLog.d(TAG, "showPopup: has_admob");
-                    admobAdsManager.showPopup(intersAds, new PopupAdsListener() {
+                    admobAdsManager.showPopup(activity, new PopupAdsListener() {
                         @Override
                         public void OnClose() {
                             listener.OnClose();
@@ -126,7 +138,7 @@ public class AdsManager {
 
                         @Override
                         public void OnShowFail() {
-                            unityAdsManager.showPopup(new PopupAdsListener() {
+                            unityAdsManager.showPopup(activity, new PopupAdsListener() {
                                 @Override
                                 public void OnClose() {
                                     listener.OnClose();
@@ -140,7 +152,7 @@ public class AdsManager {
                         }
                     });
                 } else {
-                    unityAdsManager.showPopup(new PopupAdsListener() {
+                    unityAdsManager.showPopup(activity, new PopupAdsListener() {
                         @Override
                         public void OnClose() {
                             listener.OnClose();
@@ -160,10 +172,10 @@ public class AdsManager {
         }
     }
 
-    public void showUnityPopup(PopupAdsListener listener) {
+    public void showUnityPopup(Activity activity, PopupAdsListener listener) {
         try {
             if (canShowPopup()) {
-                unityAdsManager.showPopup(new PopupAdsListener() {
+                unityAdsManager.showPopup(activity, new PopupAdsListener() {
                     @Override
                     public void OnClose() {
                         listener.OnClose();
@@ -189,11 +201,11 @@ public class AdsManager {
         return mEnableAd && (currentTime - mPreviousTime >= getLimitTime());
     }
 
-    public void showReward(RewardAdListener listener) {
+    public void showReward(Activity activity, RewardAdListener listener) {
         try {
             if (hasAdmob) {
                 AdsLog.d(TAG, "showReward: has_admob");
-                admobAdsManager.showReward(new RewardAdListener() {
+                admobAdsManager.showReward(activity, new RewardAdListener() {
                     @Override
                     public void OnClose() {
                         listener.OnClose();
@@ -203,7 +215,7 @@ public class AdsManager {
                     @Override
                     public void OnShowFail() {
                         AdsLog.d(TAG, "admob OnShowFail");
-                        unityAdsManager.showReward(new RewardAdListener() {
+                        unityAdsManager.showReward(activity, new RewardAdListener() {
                             @Override
                             public void OnClose() {
                                 listener.OnClose();
@@ -228,7 +240,7 @@ public class AdsManager {
                     }
                 });
             } else {
-                unityAdsManager.showReward(new RewardAdListener() {
+                unityAdsManager.showReward(activity, new RewardAdListener() {
                     @Override
                     public void OnClose() {
                         listener.OnClose();
@@ -251,9 +263,9 @@ public class AdsManager {
         }
     }
 
-    public void showUnityReward(RewardAdListener listener) {
+    public void showUnityReward(Activity activity, RewardAdListener listener) {
         try {
-            unityAdsManager.showReward(new RewardAdListener() {
+            unityAdsManager.showReward(activity, new RewardAdListener() {
                 @Override
                 public void OnClose() {
                     listener.OnClose();
@@ -273,6 +285,18 @@ public class AdsManager {
             listener.OnShowFail();
             //AdsLog.e(TAG, e.getMessage());
         }
+    }
+
+    public void showOpenAdIfAvailable(Activity activity) {
+        appOpenAdManager.showAdIfAvailable(activity);
+    }
+
+    public boolean isShowingOpenAd() {
+        return appOpenAdManager.isShowingAd;
+    }
+
+    public void showOpenAdIfAvailable(Activity activity, AppOpenAdManager.OnShowAdCompleteListener onShowAdCompleteListener) {
+        appOpenAdManager.showAdIfAvailable(activity, onShowAdCompleteListener);
     }
 
     public void setShowBanner(boolean showBanner) {
