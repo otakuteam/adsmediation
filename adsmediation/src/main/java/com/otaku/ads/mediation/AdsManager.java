@@ -7,8 +7,8 @@ import android.view.ViewGroup;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdView;
 import com.otaku.ads.mediation.admob.AdmobAdsManager;
-import com.otaku.ads.mediation.admob.AppOpenAdManager;
 import com.otaku.ads.mediation.callback.BannerAdsListener;
+import com.otaku.ads.mediation.callback.OpenAdsListener;
 import com.otaku.ads.mediation.callback.PopupAdsListener;
 import com.otaku.ads.mediation.callback.RewardAdListener;
 import com.otaku.ads.mediation.unity.UnityAdsManager;
@@ -19,7 +19,6 @@ public class AdsManager {
     private final String TAG = getClass().getSimpleName();
     private UnityAdsManager unityAdsManager;
     private AdmobAdsManager admobAdsManager;
-    private AppOpenAdManager appOpenAdManager;
     private boolean mEnableAd = true;
     private boolean mShowBanner = true;
     private long mPreviousTime = 0;
@@ -82,9 +81,8 @@ public class AdsManager {
 
     public void init(Context context) {
         AdsPreferenceUtil.getInstance().init(context);
-        admobAdsManager = new AdmobAdsManager(context, admobAppId, admobBanner, admobPopup, admobReward);
+        admobAdsManager = new AdmobAdsManager(context, admobAppId, admobBanner, admobPopup, admobReward, admobOpenId);
         admobAdsManager.init();
-        appOpenAdManager = new AppOpenAdManager(admobOpenId);
         unityAdsManager = new UnityAdsManager(context, unityAppId, unityPopup, unityReward);
         unityAdsManager.init();
         mEnableAd = AdsPreferenceUtil.getInstance().getBoolean(AdsConstants.PREF_ENABLE_AD, true);
@@ -288,15 +286,25 @@ public class AdsManager {
     }
 
     public void showOpenAdIfAvailable(Activity activity) {
-        appOpenAdManager.showAdIfAvailable(activity);
+        try {
+            if (hasAdmob)
+                admobAdsManager.showAdIfAvailable(activity);
+        } catch (Exception e) {
+
+        }
     }
 
     public boolean isShowingOpenAd() {
-        return appOpenAdManager.isShowingAd;
+        return admobAdsManager.isShowingAd;
     }
 
-    public void showOpenAdIfAvailable(Activity activity, AppOpenAdManager.OnShowAdCompleteListener onShowAdCompleteListener) {
-        appOpenAdManager.showAdIfAvailable(activity, onShowAdCompleteListener);
+    public void showOpenAdIfAvailable(Activity activity, OpenAdsListener onShowAdCompleteListener) {
+        try {
+            if (hasAdmob)
+                admobAdsManager.showAdIfAvailable(activity, onShowAdCompleteListener);
+        } catch (Exception e) {
+
+        }
     }
 
     public void setShowBanner(boolean showBanner) {

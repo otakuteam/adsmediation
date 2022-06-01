@@ -12,7 +12,8 @@ import androidx.lifecycle.OnLifecycleEvent;
 import androidx.lifecycle.ProcessLifecycleOwner;
 
 import com.otaku.ads.mediation.AdsManager;
-import com.otaku.ads.mediation.admob.AppOpenAdManager;
+import com.otaku.ads.mediation.callback.OpenAdsListener;
+import com.otaku.ads.mediation.util.AdsLog;
 
 public class App extends Application implements Application.ActivityLifecycleCallbacks, LifecycleObserver {
 
@@ -42,6 +43,7 @@ public class App extends Application implements Application.ActivityLifecycleCal
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
     protected void onMoveToForeground() {
         // Show the ad (if available) when the app moves to foreground.
+        AdsLog.i("SplashActivity_openads", "onMoveToForeground");
         AdsManager.getInstance().showOpenAdIfAvailable(currentActivity);
     }
 
@@ -91,9 +93,10 @@ public class App extends Application implements Application.ActivityLifecycleCal
      */
     public void showAdIfAvailable(
             @NonNull Activity activity,
-            @NonNull AppOpenAdManager.OnShowAdCompleteListener onShowAdCompleteListener) {
+            @NonNull OpenAdsListener onShowAdCompleteListener) {
         // We wrap the showAdIfAvailable to enforce that other classes only interact with MyApplication
         // class.
+        AdsLog.i("SplashActivity_openads", "showAdIfAvailable");
         AdsManager.getInstance().showOpenAdIfAvailable(activity, onShowAdCompleteListener);
     }
 

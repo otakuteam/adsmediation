@@ -26,12 +26,15 @@ import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 import com.otaku.ads.mediation.AdsConstants;
 import com.otaku.ads.mediation.callback.BannerAdsListener;
+import com.otaku.ads.mediation.callback.OpenAdsListener;
 import com.otaku.ads.mediation.callback.PopupAdsListener;
 import com.otaku.ads.mediation.callback.RewardAdListener;
 import com.otaku.ads.mediation.util.AdsLog;
 import com.otaku.ads.mediation.util.AdsPreferenceUtil;
 
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Date;
 
 public class AdmobAdsManager {
     public final String TAG = getClass().getSimpleName();
@@ -40,21 +43,26 @@ public class AdmobAdsManager {
     public static RewardModel rewardAd;
     private PopupAdsListener adPopupListener;
     private RewardAdListener adRewardListener;
+    private OpenAdsListener adOpenListener;
     private AppOpenAd appOpenAd;
     private String app_id = "";
     private String banner_id = "";
     private String popup_id = "";
     private String reward_id = "";
-
+    private String open_id = "";
+    public boolean isLoadingAd = false;
+    public boolean isShowingAd = false;
+    private long loadTime = 0;
 
     private boolean mCount = false;
 
-    public AdmobAdsManager(Context context, String appId, String bannerid, String popupid, String rewardid) {
+    public AdmobAdsManager(Context context, String appId, String bannerid, String popupid, String rewardid, String openid) {
         mContext = context;
         app_id = appId;
         banner_id = bannerid;
         popup_id = popupid;
         reward_id = rewardid;
+        open_id = openid;
 
         intersAds = new InterstitialModel().setShow(true);
         rewardAd = new RewardModel().setShow(true);
@@ -68,7 +76,8 @@ public class AdmobAdsManager {
             }
         });
         loadInterstitialAd();
-        loadReward();
+        loadRewardAd();
+        loadOpenAd();
     }
 
     public void showBanner(AdView adView, AdListener listener) {
@@ -202,7 +211,7 @@ public class AdmobAdsManager {
     }
 
     //############### Reward ads ###################
-    private void loadReward() {
+    private void loadRewardAd() {
         AdsLog.i(TAG, "Admob - loadReward()");
         if (rewardAd.getAd() == null) {
             rewardAd.setLoading(true);
@@ -220,7 +229,7 @@ public class AdmobAdsManager {
                             rewardAd.setLoading(false);
                             if (rewardAd.isReloaded() == false) {
                                 rewardAd.setReloaded(true);
-                                loadReward();
+                                loadRewardAd();
                             }
                             if (adRewardListener != null)
                                 adRewardListener.OnShowFail();
@@ -263,7 +272,7 @@ public class AdmobAdsManager {
                                     // Don't forget to set the ad reference to null so you
                                     // don't show the ad a second time.
                                     rewardAd.setAd(null);
-                                    if (!rewardAd.isLoading()) loadReward();
+                                    if (!rewardAd.isLoading()) loadRewardAd();
                                 }
 
                                 @Override
@@ -273,7 +282,7 @@ public class AdmobAdsManager {
                                     // don't show the ad a second time.
                                     AdsLog.d(TAG, "onAdDismissedFullScreenContent");
                                     rewardAd.setAd(null);
-                                    if (!rewardAd.isLoading()) loadReward();
+                                    if (!rewardAd.isLoading()) loadRewardAd();
                                 }
                             });
                     rewardAd.getAd().show(
@@ -282,7 +291,7 @@ public class AdmobAdsManager {
                                 @Override
                                 public void onUserEarnedReward(@NonNull RewardItem rewardItem) {
                                     AdsLog.d(TAG, "onRewarded");
-                                    if (!rewardAd.isLoading()) loadReward();
+                                    if (!rewardAd.isLoading()) loadRewardAd();
                                     if (adRewardListener != null)
                                         adRewardListener.OnRewarded();
                                     AdsLog.d(TAG, "onRewarded: " + rewardItem);
@@ -310,4 +319,140 @@ public class AdmobAdsManager {
         return 0 * 1000;
     }
 
+    //############### Open ads ###################
+    private void loadOpenAd() {
+        // Do not load ad if there is an unused ad or one is already loading.
+        if (isLoadingAd || isAdAvailable()) {
+            return;
+        }
+
+        isLoadingAd = true;
+        AdRequest request = new AdRequest.Builder().build();
+        AppOpenAd.load(
+                mContext,
+                open_id,
+                request,
+                AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT,
+                new AppOpenAd.AppOpenAdLoadCallback() {
+                    /**
+                     * Called when an app open ad has loaded.
+                     *
+                     * @param ad the loaded app open ad.
+                     */
+                    @Override
+                    public void onAdLoaded(AppOpenAd ad) {
+                        appOpenAd = ad;
+                        isLoadingAd = false;
+                        loadTime = (new Date()).getTime();
+
+                        AdsLog.d(TAG, "loadOpenAd onAdLoaded.");
+                    }
+
+                    /**
+                     * Called when an app open ad has failed to load.
+                     *
+                     * @param loadAdError the error.
+                     */
+                    @Override
+                    public void onAdFailedToLoad(LoadAdError loadAdError) {
+                        isLoadingAd = false;
+                        AdsLog.d(TAG, "loadOpenAd onAdFailedToLoad: " + loadAdError.getMessage());
+                    }
+                });
+    }
+
+    /**
+     * Check if ad was loaded more than n hours ago.
+     */
+    private boolean wasLoadTimeLessThanNHoursAgo(long numHours) {
+        long dateDifference = (new Date()).getTime() - loadTime;
+        long numMilliSecondsPerHour = 3600000;
+        return (dateDifference < (numMilliSecondsPerHour * numHours));
+    }
+
+    /**
+     * Check if ad exists and can be shown.
+     */
+    private boolean isAdAvailable() {
+        // Ad references in the app open beta will time out after four hours, but this time limit
+        // may change in future beta versions. For details, see:
+        // https://support.google.com/admob/answer/9341964?hl=en
+        return appOpenAd != null && wasLoadTimeLessThanNHoursAgo(4);
+    }
+
+    /**
+     * Show the ad if one isn't already showing.
+     *
+     * @param activity the activity that shows the app open ad
+     */
+    public void showAdIfAvailable(@NonNull final Activity activity) {
+        showAdIfAvailable(
+                activity,
+                new OpenAdsListener() {
+                    @Override
+                    public void OnShowAdComplete() {
+                        // Empty because the user will go back to the activity that shows the ad.
+                    }
+                });
+    }
+
+    /**
+     * Show the ad if one isn't already showing.
+     *
+     * @param activity                 the activity that shows the app open ad
+     * @param onShowAdCompleteListener the listener to be notified when an app open ad is complete
+     */
+    public void showAdIfAvailable(
+            @NonNull final Activity activity,
+            @NonNull OpenAdsListener onShowAdCompleteListener) {
+        adOpenListener = onShowAdCompleteListener;
+        // If the app open ad is already showing, do not show the ad again.
+        if (isShowingAd) {
+            AdsLog.d(TAG, "showAdIfAvailable: The app open ad is already showing.");
+            return;
+        }
+
+        // If the app open ad is not available yet, invoke the callback then load the ad.
+        if (!isAdAvailable()) {
+            AdsLog.d(TAG, "showAdIfAvailable: The app open ad is not ready yet.");
+            if (adOpenListener != null) adOpenListener.OnShowAdComplete();
+            loadOpenAd();
+            return;
+        }
+
+        AdsLog.d(TAG, "showAdIfAvailable: Will show ad.");
+
+        appOpenAd.setFullScreenContentCallback(
+                new FullScreenContentCallback() {
+                    /** Called when full screen content is dismissed. */
+                    @Override
+                    public void onAdDismissedFullScreenContent() {
+                        // Set the reference to null so isAdAvailable() returns false.
+                        appOpenAd = null;
+                        isShowingAd = false;
+                        AdsLog.d(TAG, "showAdIfAvailable: onAdDismissedFullScreenContent.");
+                        if (adOpenListener != null) adOpenListener.OnShowAdComplete();
+                        loadOpenAd();
+                    }
+
+                    /** Called when fullscreen content failed to show. */
+                    @Override
+                    public void onAdFailedToShowFullScreenContent(AdError adError) {
+                        appOpenAd = null;
+                        isShowingAd = false;
+                        AdsLog.d(TAG, "showAdIfAvailable: onAdFailedToShowFullScreenContent: " + adError.getMessage());
+                        if (adOpenListener != null) adOpenListener.OnShowAdComplete();
+                        loadOpenAd();
+                    }
+
+                    /** Called when fullscreen content is shown. */
+                    @Override
+                    public void onAdShowedFullScreenContent() {
+                        AdsLog.d(TAG, "showAdIfAvailable: onAdShowedFullScreenContent.");
+                    }
+                });
+
+        isShowingAd = true;
+        appOpenAd.show(activity);
+    }
 }
